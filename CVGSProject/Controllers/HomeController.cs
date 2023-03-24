@@ -60,6 +60,7 @@ namespace CVGSProject.Controllers {
         }
         [HttpPost]
         public ActionResult AddToWishList(int GameId, string AccountToken, string AccountUsername) {
+            // Add to wishlist function
             try {
                 using (DBManager db = new DBManager(connectionString)) {
                     DataSet DbSet = db.GetSelectQuery(new List<SqlParameter>() {
