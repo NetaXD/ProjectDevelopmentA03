@@ -1,0 +1,303 @@
+﻿@model CVGSProject.Models.ProfileModel
+
+@{
+    ViewBag.Title = "Profile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .profileEditRow {
+        display: flex;
+        justify-content: center;
+        align-content: center;
+        align-items: center;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+    .prefBtns {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .prefBtnsSingles {
+        margin: 0 10px 0 10px;
+    }
+    .accountEditRow {
+        display: flex;
+        justify-content: center;
+        align-content: center;
+        align-items: center;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+    .FavoritesRow {
+        display: flex;
+        justify-content: center;
+        align-content: center;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+    .btn-sm {
+        float:right !important;
+    }
+    .favCol {
+    }
+</style>
+
+<h2 class="title">Profile</h2>
+
+<div class="container editProfileContainer">
+    <div class="row profileEditRow">
+        <div class="col-sm-3">Fullname</div>
+        <div class="col-sm-3">Gender</div>
+        <div class="col-sm-3">BirthDate</div>
+        <div class="col-sm-3">ReceiveNews?</div>
+    </div>
+    <div class="row profileEditRow">
+        <input class="form-control col-sm-3" id="FullName" type="text" value="@Model.FullName">
+        <input class="form-control col-sm-3" id="Gender" type="text" value="@Model.Gender">
+        <input class="form-control col-sm-3" id="BirthDate" type="datetime" value="@Model.BirthDate">
+        <input class="form-control col-sm-3" id="ReceiveNews" type="checkbox" value="@Model.ReceiveNews">
+        <button class="btn btn-success updateBtn" id="AccountId" value="@Model.AccountId">Update</button>
+    </div>
+    <div class="row accountEditRow">
+        <div class="col-sm-4 accountEditRow">
+            <div class="col-sm-4 accountEditRow">
+                <div class="">Platforms</div>
+            </div>
+            <select class="form-control" id="platformSelect">
+                <option>XboxOne</option>
+                <option>XboxX</option>
+                <option>PS4</option>
+                <option>PS5</option>
+                <option>Nintendo</option>
+            </select>
+            <button class="btn btn-success" id="addPlatBtn" style="margin-left: 5px;">+</button>
+        </div>
+        <div class="col-sm-4 accountEditRow">
+            <div class="col-sm-4 accountEditRow">
+                <div class="">Categories</div>
+            </div>
+            <select class="form-control" id="categorySelect">
+                <option>Action</option>
+                <option>RPG</option>
+                <option>MOBA</option>
+                <option>Casual</option>
+                <option>Adventure</option>
+            </select>
+            <button class="btn btn-success" id="addCatBtn" style="margin-left: 5px;">+</button>
+        </div>
+    </div>
+    <div class="row FavoritesRow">
+        <div class="col-sm-12 favCol">
+            <div style="text-align: center">Favorite Platforms</div>
+            @foreach (var item in Model.Platforms) {
+                <div class="row" style="margin: 5px 0 5px 0">
+                    @item.Platform
+                    <button class="btn-sm btn-danger" onclick="DeletePlatform(@Model.AccountId, '@item.Platform')">Delete</button>
+                </div>
+            }
+        </div>
+        <div class="col-sm-12 favCol">
+            <div style="text-align: center">Favorite Categories</div>
+            @foreach (var item in Model.Categories) {
+                <div class="row" style="margin: 5px 0 5px 0">
+                    @item.Category
+                    <button class="btn-sm btn-danger" onclick="DeleteCategory(@Model.AccountId, '@item.Category')">Delete</button>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="row profileEditRow">
+        <div class="col-sm-3">Shipping Address</div>
+        <div class="col-sm-3">Mailing Address</div>
+        <div class="col-sm-3">Same Address?</div>
+    </div>
+    <div class="row profileEditRow">
+        <input class="form-control col-sm-3" id="Shipping" type="text" value="@Model.Address.Shipping">
+        <input class="form-control col-sm-3" id="Mailing" type="text" value="@Model.Address.Mailing">
+        <input class="form-control " id="SameAddress" type="checkbox" value="">
+        <button class="btn btn-success" id="UpdateAddressBtn" value="">Update</button>
+    </div>
+    <div class="row accountEditRow">
+        <div class="col-sm-4 accountEditRow">
+            <div class="col-sm-4 accountEditRow">
+                <div class="">Add CC</div>
+            </div>
+            <input class="form-control" type="text" id="CCinput" />
+            <button class="btn btn-success" id="addCC" style="margin-left: 5px;">+</button>
+        </div>
+    </div>
+    <div class="row FavoritesRow">
+        <div class="col-sm-12 favCol">
+            <div style="text-align: center">CreditCards</div>
+            @foreach (var item in Model.CreditCards) {
+                <div class="row" style="margin: 5px 0 5px 0">
+                    @item.CreditCardNumber
+                    <button class="btn-sm btn-danger" onclick="DeleteCC(@Model.AccountId, '@item.CreditCardNumber')">Delete</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    const CCRegex =/^(?:4[0-9]{12}(?:[0-9]{3})?|[25][1-7][0-9]{14}|6(?:011|5[0-9][0-9])[0-9]{12}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|(?:2131|1800|35\d{3})\d{11})$/;
+
+    if (@Model.ReceiveNews == 1) {
+        $("#ReceiveNews").prop("checked", true);
+    }
+    else {
+        $("#ReceiveNews").prop("checked", false);
+    }
+    if ('@Model.Address.SameAddress' == "True") {
+        $("#SameAddress").prop("checked", true);
+        $("#Mailing").val(null);
+        $("#Mailing").prop('disabled', true);
+    }
+    else {
+        $("#SameAddress").prop("checked", false);
+    }
+    $("#SameAddress").on("click", () => {
+        if ($("#SameAddress").prop("checked") == false) {
+            $("#Mailing").prop("disabled", false);
+        } else {
+            $("#Mailing").prop("disabled", true);
+        }
+    });
+    $(".updateBtn").on("click", () => {
+        var AccountId = $("#AccountId").val();
+        var FullName = $("#FullName").val();
+        var Gender = $("#Gender").val();
+        var BirthDate = $("#BirthDate").val();
+        var ReceiveNews;
+        if ($("#ReceiveNews").prop("checked")) {
+            ReceiveNews = 1;
+        } else {
+            ReceiveNews = 0;
+        }
+        $.ajax({
+            type: "POST",
+            cache: false,
+            url: "@Url.Action("UpdateProfile", "Home")",
+            data: { "AccountId": AccountId, "FullName": FullName, "Gender": Gender, "BirthDate": BirthDate, "ReceiveNews": ReceiveNews },
+            success: function (data) {
+                alert("Success!");
+            }
+        });
+    });
+    $("#PreferencesBtn").on("click", () => {
+        $(".editProfileContainer").hide();
+        $(".editPreferencesContainer").show();
+        $(".title").text("Preferences");
+    });
+    $("#accountPrefBackBtn").on("click", () => {
+        location.href = location.href;
+    });
+
+    $("#addPlatBtn").on("click", () => {
+        $.ajax({
+            type: "POST",
+            cache: false,
+            url: "@Url.Action("AddPlatform", "Home")",
+            data: { "platform": $("#platformSelect").val() },
+            success: function (data) {
+                location.href = location.href;
+            }
+        });
+    });
+
+    $("#addCatBtn").on("click", () => {
+        $.ajax({
+            type: "POST",
+            cache: false,
+            url: "@Url.Action("AddCategory", "Home")",
+            data: { "category": $("#categorySelect").val() },
+            success: function (data) {
+                location.href = location.href;
+            }
+        });
+    });
+
+    $("#addCC").on("click", () => {
+        if ($("#CCinput").val().search(CCRegex) == 0) {
+            $.ajax({
+                type: "POST",
+                cache: false,
+                url: "@Url.Action("AddCreditCard", "Home")",
+                data: { "CC": $("#CCinput").val() },
+                success: function (data) {
+                    location.href = location.href;
+                }
+            });
+        }
+    });
+
+    $("#UpdateAddressBtn").on("click", () => {
+        if ($("#SameAddress").prop("checked") == true) {
+            SameAddress = "Y";
+        } else {
+            SameAddress = "N";
+        }
+        $.ajax({
+            type: "POST",
+            cache: false,
+            url: "@Url.Action("UpdateAddress", "Home")",
+            data: { "AccountId": @Model.AccountId, "Shipping": $("#Shipping").val(), "Mailing": $("#Mailing").val(), "SameAddress": SameAddress },
+            success: function (data) {
+                if (data == "Success") {
+                    location.href = location.href;
+                } else {
+                    alert(data);
+                }
+            }
+        });
+    });
+
+    function DeletePlatform(AccountId, Platform) {
+        $.ajax({
+            type: "POST",
+            cache: false,
+            url: "@Url.Action("DeletePlatform", "Home")",
+            data: { "AccountId": AccountId, "Platform" : Platform },
+            success: function (data) {
+                if (data == "Success") {
+                    location.href = location.href;
+                } else {
+                    alert(data);
+                }
+            }
+        });
+    }
+    function DeleteCC(AccountId, CC) {
+        $.ajax({
+            type: "POST",
+            cache: false,
+            url: "@Url.Action("DeleteCC", "Home")",
+            data: { "AccountId": AccountId, "CC": CC },
+            success: function (data) {
+                if (data == "Success") {
+                    location.href = location.href;
+                } else {
+                    alert(data);
+                }
+            }
+        });
+    }
+    function DeleteCategory(AccountId, Category) {
+        $.ajax({
+            type: "POST",
+            cache: false,
+            url: "@Url.Action("DeleteCategory", "Home")",
+            data: { "AccountId": AccountId, "Category": Category },
+            success: function (data) {
+                if (data == "Success") {
+                    location.href = location.href;
+                } else {
+                    alert(data);
+                }
+            }
+        });
+    }
+</script>

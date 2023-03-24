@@ -1,0 +1,76 @@
+﻿@model CVGSProject.Models.WishList
+@{
+    ViewBag.Title = "WishList";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .WishListRow {
+        display: flex;
+    }
+    .col-sm-4 {
+        display: flex;
+        align-content:center;
+        align-items:center;
+        justify-content: center;
+    }
+</style>
+
+<h2 style="text-align: center;">WishList</h2>
+
+<div class="contentContainer">
+    <div class="row WishListRow" style="">
+        <div class="col-sm-4 WishListCol">
+            WishListId
+        </div>
+        <div class="col-sm-4 WishListCol">
+            AccountId
+        </div>
+        <div class="col-sm-4 WishListCol">
+            GameId
+        </div>
+        <div class="col-sm-4 WishListCol">
+            Game Title
+        </div>
+        <div class="col-sm-4 WishListCol">
+        </div>
+    </div>
+    @foreach(var item in Model.Wishes) {
+    <div class="row WishListRow">
+        <div class="col-sm-4 WishListCol">
+            @item.WishListId
+        </div>
+        <div class="col-sm-4 WishListCol">
+            @item.AccountId
+        </div>
+        <div class="col-sm-4 WishListCol">
+            @item.GameID
+        </div>
+        <div class="col-sm-4 WishListCol">
+            @item.GameTitle
+        </div>
+        <div class="col-sm-4 WishListCol">
+            <button class="btn btn-danger" onclick="DeleteWishList(@item.WishListId)">Delete</button>
+        </div>
+    </div>
+    }
+</div>
+
+<script type="text/javascript">
+    function DeleteWishList(WishListId) {
+        $.ajax({
+            type: "POST",
+            cache: false,
+            url: "@Url.Action("DeleteWishList", "Home")",
+            data: { "WishListId": WishListId },
+            success: function (data) {
+                if (data == 1) {
+                    location.href = location.href;
+                }
+                else if (data == 0) {
+                    alert("error...");
+                }
+            }
+        });
+    }
+</script>

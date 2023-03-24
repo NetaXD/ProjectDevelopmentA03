@@ -1,0 +1,285 @@
+﻿@model CVGSProject.Models.Games
+@{
+    ViewBag.Title = "Welcome to CVSG";
+}
+
+
+<style>
+    .box-shadow {
+        box-shadow: 0 0.25rem 1rem rgb(54 54 54 / 26%);
+    }
+
+    .card {
+        background-color: #f5f5f5;
+        margin: 15px 0 15px 0;
+        border-radius: 15px;
+        border: 2px solid lightgrey;
+        transition: 2s;
+    }
+
+    .GamePopup {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%,-50%);
+        width: 400px;
+        height: 400px;
+        border-radius: 15px;
+        border: 2px solid lightgrey;
+        background: #f5f5f5;
+        display: flex;
+        flex-direction: column;
+        padding-top: 60px
+    }
+
+    .card-text {
+        text-align: center;
+        padding: 5px 0 0 0;
+        font-size: 22px;
+        font-family: "Arial";
+    }
+
+    .btn-card {
+        margin: 0 5px 10px 5px;
+        border-radius: 3px;
+        transition: 0.5s;
+    }
+
+    #GameView:hover {
+        transform: translate(1px, -1px);
+        color: white;
+    }
+
+    .btn-groups {
+        margin-left: 15px;
+        margin-right: 15px;
+        width: inherit;
+    }
+
+    .PopupRow {
+        text-align: center;
+    }
+    
+    .PopupClose {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+    }
+
+    .ErrorPopup {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%,-50%);
+        width: 250px;
+        height: 100px;
+        border-radius: 15px;
+        border: 2px solid lightgrey;
+        background: #f5f5f5;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    .DupPopup {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%,-50%);
+        width: 250px;
+        height: 100px;
+        border-radius: 15px;
+        border: 2px solid lightgrey;
+        background: #f5f5f5;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+</style>
+
+<div class="row" style="text-align: center">
+    <h1 id="title">Games</h1>
+</div>
+
+<div class="contentContainer">
+    <div class="row" style="display: flex;">
+        <input class="form-control" type="text" placeholder="Search" id="searchBox" />
+        <button class="btn btn-primary" id="searchBtn"><span class="glyphicon glyphicon-search"></span></button>
+        <button class="btn btn-primary" id="ViewWishList" style="position: absolute; right: 200px;">View WishList</button>
+    </div>
+    <div class="album py-5 bg-light">
+        <div class="container">
+            <div class="row">
+                @foreach (var item in Model.GamesList) {
+                    <div class="col-md-4">
+                        <div class="card mb-4 box-shadow">
+                            <div class="card-body">
+                                <p class="card-text">@item.GameTitle</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="btn-groups">
+                                        <button type="button" class="btn btn-sm btn-primary btn-card" id="GameView" onclick="GameView('@item.GameTitle', '@item.GamePublisher', '@item.GameDescription', @item.GameId, '@item.GameRating')">View</button>
+                                        <button type="button" class="btn btn-sm btn-success btn-card" style="float: right;" onclick="AddToWishList('@item.GameId', this)">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+<div class="GamePopup">
+    <div class="row PopupRow">
+        <h2 id="PopupTitle"></h2>
+    </div>
+    <div class="row PopupRow">
+        <h3 id="PopupGamePublisher"></h3>
+    </div>
+    <div class="row PopupRow">
+        <h4 id="PopupDescription"></h4>
+    </div>
+    <div class="row PopupRow">
+        <h3 id="PopupRating"></h3>
+    </div>
+    <div class="row PopupRow" style=" display: flex; justify-content: center;">
+        <select class="form-control" style="width: fit-content;" id="RateOption">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+        </select>
+        <button class="btn btn-success" id="RateBtn">Rate</button>
+    </div>
+    <button class="btn btn-danger PopupClose" id="PopupClose">Close</button>
+</div>
+
+<div class="ErrorPopup">
+    <div class="row">
+        <h5>You need to login to do this</h5>
+    </div>
+    <div class="row">
+        <button class="btn btn-success" id="OkBtn">Ok</button>
+    </div>
+</div>
+
+<div class="DupPopup">
+    <div class="row">
+        <h5>This is already in your list</h5>
+    </div>
+    <div class="row">
+        <button class="btn btn-success" id="DupOkBtn">Ok</button>
+    </div>
+</div>
+
+<script>
+
+    $(".GamePopup").hide();
+    $(".ErrorPopup").hide();
+    $(".DupPopup").hide();
+    var currentGameId;
+
+    AccountToken = "@HttpContext.Current.Session["AccountToken"]";
+    AccountUsername = "@HttpContext.Current.Session["AccountUsername"]";
+    if (AccountUsername != "") {
+        $("#title").text("Welcome, " + AccountUsername);
+    }
+
+    function GameView(GameTitle, GamePublisher, GameDescription, GameId, GameRating) {
+        $(".GamePopup").show();
+        currentGameId = GameId;
+        $(".contentContainer").css({ "pointer-events": "none" });
+        $(".contentContainer").css({ "opacity": "0.4" });
+        $("#PopupRating").text(GameRating + " /5 ");
+        $("#PopupTitle").text(GameTitle);
+        $("#PopupGamePublisher").text(GamePublisher);
+        $("#PopupDescription").text(GameDescription);
+    }
+
+    $("#PopupClose").on("click", () => {
+        $(".GamePopup").hide();
+        $(".contentContainer").css({ "pointer-events": "all" });
+        $(".contentContainer").css({ "opacity": "1" });
+    });
+
+    $("#searchBtn").on("click", () => {
+        location.href = location.origin + "?search=" + $("#searchBox").val();
+    });
+
+    function AddToWishList(GameId, selector) {
+        if (AccountUsername != "") {
+            $.ajax({
+                type: "POST",
+                cache: false,
+                url: "@Url.Action("AddToWishList", "Home")",
+                data: { "GameId": GameId, "AccountToken": AccountToken, "AccountUsername": AccountUsername },
+                success: function (data) {
+                    if (data == 2) {
+                        $(".DupPopup").show();
+                        $(".contentContainer").css({ "pointer-events": "none" });
+                        $(".contentContainer").css({ "opacity": "0.4" });
+                    }
+                    if (data == 1) {
+                        $(selector).text("✓");
+                    }
+                }
+            });
+        }
+        else {
+            $(".ErrorPopup").show();
+            $(".contentContainer").css({ "pointer-events": "none" });
+            $(".contentContainer").css({ "opacity": "0.4" });
+        }
+    }
+
+    $("#OkBtn").on("click", () => {
+        $(".ErrorPopup").hide();
+        $(".contentContainer").css({ "pointer-events": "all" });
+        $(".contentContainer").css({ "opacity": "1" });
+    });
+
+    $("#DupOkBtn").on("click", () => {
+        $(".DupPopup").hide();
+        $(".contentContainer").css({ "pointer-events": "all" });
+        $(".contentContainer").css({ "opacity": "1" });
+    });
+
+    $("#ViewWishList").on("click", () => {
+        if (AccountToken != "" && AccountUsername != "") {
+            location.href = "@Url.Action("WishList", "Home")"
+        }
+        else {
+            $(".ErrorPopup").show();
+            $(".contentContainer").css({ "pointer-events": "none" });
+            $(".contentContainer").css({ "opacity": "0.4" });
+        }
+    });
+
+    $("#RateBtn").on("click", () => {
+        if (AccountUsername != "" && AccountToken != "") {
+            $.ajax({
+                type: "POST",
+                cache: false,
+                url: "@Url.Action("RateGame", "Home")",
+                data: { "GameId": currentGameId, "GameRating": $("#RateOption").val() },
+                success: function (data) {
+                    if (data == 1) {
+                        location.href = location.href;
+                    }
+                    else if (data == 0) {
+                        alert("error");
+                    }
+                }
+            });
+        }
+        else {
+            $(".ErrorPopup").show();
+            $(".GamePopup").hide();
+            $(".contentContainer").css({ "pointer-events": "none" });
+            $(".contentContainer").css({ "opacity": "0.4" });
+        }
+    });
+
+</script>

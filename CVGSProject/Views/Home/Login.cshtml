@@ -1,0 +1,224 @@
+﻿
+@{
+    ViewBag.Title = "Login";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .loginForm {
+        padding: 10px;
+        display: flex;
+        justify-content: center;
+        align-items:center;
+    }
+    .registerForm {
+        padding: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .form-label {
+        padding-right: 10px;
+    }
+    .loginContainer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 60vh;
+    }
+    .registerContainer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 60vh;
+    }
+    .formContainer {
+        padding:5px 35px 5px 35px;
+        border: 2px solid lightgray;
+        border-radius: 15px;
+        width: fit-content;
+    }
+    .smallerbtn {
+        margin: -10px 4px 8px 10px !important; 
+    }
+</style>
+
+<h2 style="text-align: center;" id="title">Login</h2>
+
+<div class="container loginContainer" id="loginContainer">
+    <div class="container formContainer">
+        <div class="row loginForm">
+            <label class="form-label" for="username">Username</label>
+            <input class="form-control" type="text" id="username" placeholder="Username" />
+        </div>
+        <div class="row loginForm">
+            <label class="form-label" for="password">Password</label>
+            <input class="form-control" type="password" id="password" placeholder="Password" />
+        </div>
+        <div class="row loginForm">
+            <button class="btn btn-block btn-success" id="loginbtn" type="button">Login</button>
+        </div>
+        <div class="row loginForm" id="errorInfo">
+            <p style="color:red" id="errormsg">errors</p>
+        </div>
+        <div class="row loginForm">
+            <button class="btn btn-primary smallerbtn">Change Password</button>
+            <button class="btn btn-danger smallerbtn">Forgot Password</button>
+        </div>
+        <div class="row loginForm">
+            <p>Dont have an account? Register <a style="cursor: pointer" id="registerHereBtn">here</a></p>
+        </div>
+    </div>
+</div>
+
+<div class="container registerContainer" id="registerContainer">
+    <div class="container formContainer">
+        <div class="row registerForm">
+            <label class="form-label" for="registerUsername">Username</label>
+            <input class="form-control" type="text" id="registerUsername" placeholder="Username" />
+        </div>
+        <div class="row registerForm">
+            <label class="form-label" for="registerPassword">Password</label>
+            <input class="form-control" type="password" id="registerPassword" placeholder="Password" />
+        </div>
+        <div class="row registerForm">
+            <label class="form-label" for="registerEmail">Email</label>
+            <input class="form-control" type="email" id="registerEmail" placeholder="Email" />
+        </div>
+        <div class="row registerForm">
+            <button class="btn btn-block btn-success" id="registerBtn" type="button">Register</button>
+        </div>
+        <div class="row registerForm" id="errorInfo">
+            <p style="color:red" id="registerErrors">errors</p>
+        </div>
+        <div class="row registerForm">
+            <p>Already have an account? Login <a style="cursor: pointer" id="loginHereBtn">here</a></p>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    // on load
+
+    var attempts = 0
+    $("#errorInfo").hide();
+    $("#registerContainer").hide();
+    $("#registerErrors").hide();
+    var localToken = "@HttpContext.Current.Session["AccountToken"]";
+    var localUsername = "@HttpContext.Current.Session["AccountUsername"]";
+
+    if (localToken != "" || localUsername != "") {
+        sessionStorage.clear();
+    }
+
+    // events
+
+    $("#loginbtn").on("click", () => {
+        var username = $("#username").val();
+        var password = $("#password").val();
+        if (attempts == 3) {
+            alert("Maximum Attemps made...");
+        } else {
+            CheckAuth(username, password);
+        }
+    });
+
+    $("#registerHereBtn").on("click", () => {
+        $("#loginContainer").hide();
+        $("#registerContainer").show();
+        $("#title").text("Register User");
+    });
+
+    $("#loginHereBtn").on("click", () => {
+        $("#loginContainer").show();
+        $("#registerContainer").hide();
+        $("#title").text("Login");
+    });
+
+    $("#registerBtn").on("click", () => {
+        var username = $("#registerUsername").val();
+        var password = $("#registerPassword").val();
+        var email = $("#registerEmail").val();
+        if (validate(username, password, email)) {
+            RegisterUser(username, password, email);
+        }
+    });
+
+    // functions
+
+    function CheckAuth(username, password) {
+        $.ajax({
+            type: "POST",
+            cache: false,
+            url: "@Url.Action("CheckAuth", "Home")",
+            data: { "username": username, "password": password },
+            success: function (data) {
+                if (data != null) {
+                    sessionStorage.setItem("AccountToken", data);
+                    sessionStorage.setItem("AccountUsername", username);
+                    window.location = "@Url.Action("Index", "Home")";
+                }
+            },
+            error: function () {
+                attempts = attempts + 1;
+                alert("Wrong Password... Attempts left - " + (3 - attempts));
+
+            }
+        });
+    }
+    
+    function RegisterUser(username, password, email) {
+        $.ajax({
+            type: "POST",
+            cache: false,
+            url: "@Url.Action("RegisterUser", "Home")",
+            data: { "username": username, "password": password, "email": email },
+            success: function (data) {
+                if (data == 'error') {
+                    alert("Username has been taken...");
+                }
+                else if (data == 'success') {
+                    alert("registeration success!");
+                    $("#registerContainer").hide();
+                    $("#loginContainer").show();
+                }
+                else {
+                    alert("error");
+                }
+            }
+        });
+    }
+
+    function validate(username, password, email) {
+        var errormsg = "";
+        var hasError = false;
+
+        const passreg = /^(?=.*[\d])(?=.*[!@@#$%^&*])[\w!@@#$%^&*]{8,25}$/;
+        const userreg = /^[a-zA-Z\d]{5,15}$/;
+        const emailreg = /^[\w-\.]+@@([\w-]+\.)+[\w-]{2,4}$/;
+
+        if (username.search(userreg) != 0) {
+            hasError = true;
+            errormsg += "Username must be 5 to 15 alphanumeric characters<br>";
+        }
+        if (password.search(passreg) != 0) {
+            hasError = true;
+            errormsg += "Password must be longer than 8 characters <br>Password must contain 1 uppercase and 1 special character<br>";
+        }
+        if (email.search(emailreg) != 0)  {
+            hasError = true;
+            errormsg += "A valid email is required<br>";
+        }
+        if (hasError == false) {
+            $("#registerErrors").hide();
+            return true;
+        }
+        else {
+            document.getElementById("registerErrors").innerHTML = errormsg;
+            $("#registerErrors").show();
+            return false;
+        }
+    }
+
+</script>

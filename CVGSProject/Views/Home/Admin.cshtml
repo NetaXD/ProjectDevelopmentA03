@@ -1,0 +1,273 @@
+﻿@model CVGSProject.Models.AdminModel.AdminPanelModel
+@{
+    ViewBag.Title = "Admin";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .gamesBtns {
+        height: 7vh;
+        width: 20vw;    
+        margin-right: 15px;
+        margin-left: 15px;
+    }
+    .adminRow {
+        display: flex;
+        justify-content: center;
+        align-content: center;
+    }
+    .adminRowTitle {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    .adminForm {
+        padding: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .xlabel {
+        padding-right: 15px;
+    }
+    .adminContainer {
+        margin-left: -25px !important;
+    }
+    .addGamesContainer {
+        margin-top: 40px;
+        margin-left: -25px !important;
+        padding: 5px 0 20px 5px;
+        border: 2px solid lightgray;
+        border-radius: 15px;
+        width: fit-content;
+    }
+    .gameEditRow {
+        display: flex;
+        justify-content: center;
+        align-content: center;
+        align-items: center;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+    .updateBtn {
+        margin-left: 20px;
+    }
+    .gameDeleteRow {
+        display: flex;
+        justify-content: center;
+        align-content: center;
+        align-items: center;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+</style>
+
+<h2 style="text-align:center;">Admin Panel</h2>
+
+<div class="container adminContainer">
+    <div class="container menucontainer">
+        <div class="adminRow adminRowTitle">
+            <h3>Games Gallery Controls</h3>
+        </div>
+        <div class="row adminRow">
+            <button class="btn btn-success gamesBtns" id="addGamesBtn">Add</button>
+            <button class="btn btn-primary gamesBtns" id="editGamesBtn">Edit</button>
+            <button class="btn btn-danger gamesBtns" id="deleteGamesBtn">Delete</button>
+        </div>
+        <div class="adminRow adminRowTitle">
+            <h3>Event Controls</h3>
+        </div>
+        <div class="row adminRow">
+            <button class="btn btn-success gamesBtns" id="eventBtn">Events</button>
+        </div>
+        <div class="adminRow adminRowTitle">
+            <h3>Report Controls</h3>
+        </div>
+        <div class="row adminRow">
+            <button class="btn btn-success gamesBtns">Reports</button>
+        </div>
+        <div class="adminRow adminRowTitle">
+            <h3>Review Controls</h3>
+        </div>
+        <div class="row adminRow">
+            <button class="btn btn-success gamesBtns">Reviews</button>
+        </div>
+    </div>
+</div>
+
+<div class="container addGamesContainer">
+    <div class="container menucontainer">
+        <div class="adminRow adminRowTitle">
+            <h3>Add Games</h3>
+        </div>
+        <div>
+            <button class="btn btn-danger" style="position: absolute" id="addGamesBackBtn">Back</button>
+        </div>
+        <div class="row adminForm">
+            <label class="form-label xlabel" for="gameTitle">Game Title</label>
+            <input class="form-control" type="text" id="gameTitle" placeholder="Game Title" />
+        </div>
+        <div class="row adminForm">
+            <label class="form-label xlabel" for="gamePublisher">Publisher</label>
+            <input class="form-control" type="text" id="gamePublisher" placeholder="Publisher" />
+        </div>
+        <div class="row adminForm">
+            <button class="btn btn-success gamesBtns" id="addGamesConfirmBtn">Add</button>
+        </div>
+    </div>
+</div>
+
+<div class="container editGamesContainer">
+    <div>
+        <button class="btn btn-danger" style="position: absolute" id="editGamesBackBtn">Back</button>
+    </div>
+    <div class="row gameEditRow">
+        <div class="col-sm-3">Game Title</div>
+        <div class="col-sm-3">Game Publisher</div>
+    </div>
+    @foreach (var item in Model.GamesList) {
+        <div class="row gameEditRow">
+            <input class="form-control col-sm-3 title @item.GamesID" type="text" value="@item.GameTitle">
+            <input class="form-control col-sm-3 publisher @item.GamesID" type="text" value="@item.GamesPublisher">
+            <button class="btn btn-success updateBtn" id="@item.GamesID" onclick="UpdateGame(@item.GamesID)">Update</button>
+        </div>
+    }
+</div>
+
+<div class="container deleteGamesContainer">
+    <div>
+        <button class="btn btn-danger" style="position: absolute" id="deleteGamesBackBtn">Back</button>
+    </div>
+    @foreach (var item in Model.GamesList) {
+        <div class="row gameDeleteRow">
+            <div class="col-sm-4">@item.GameTitle</div>
+            <button class="btn btn-success updateBtn @item.GamesID" onclick="DeleteGame(@item.GamesID)">Delete</button>
+        </div>
+    }
+</div>
+
+<div class="container addEventContainer">
+    <div class="container menucontainer">
+        <div class="adminRow adminRowTitle">
+            <h3>Add Events</h3>
+        </div>
+        <div>
+            <button class="btn btn-danger" style="position: absolute" id="addEventBackBtn">Back</button>
+        </div>
+        <div class="row adminForm">
+            <label class="form-label xlabel" for="gameTitle">Event Name</label>
+            <input class="form-control" type="text" id="eventName" placeholder="Event Name" />
+        </div>
+        <div class="row adminForm">
+            <label class="form-label xlabel" for="gamePublisher">Event Date</label>
+            <input class="form-control" type="date" id="eventDate" placeholder="Event Date" />
+        </div>
+        <div class="row adminForm">
+            <button class="btn btn-success gamesBtns" id="addEventConfirmBtn">Add</button>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    // init
+    $(".addGamesContainer").hide();
+    $(".editGamesContainer").hide();
+    $(".deleteGamesContainer").hide();
+    $(".addEventContainer").hide();
+
+    //events
+    $("#addGamesBtn").on("click", () => {
+        $(".adminContainer").hide();
+        $(".addGamesContainer").show();
+    });
+
+    $("#addGamesBackBtn").on("click", () => {
+        $(".addGamesContainer").hide();
+        $(".adminContainer").show();
+    });
+
+    $("#editGamesBtn").on("click", () => {
+        $(".adminContainer").hide();
+        $(".editGamesContainer").show();
+    });
+
+    $("#editGamesBackBtn").on("click", () => {
+        $(".editGamesContainer").hide();
+        $(".adminContainer").show();
+    });
+
+    $("#deleteGamesBtn").on("click", () => {
+        $(".adminContainer").hide();
+        $(".deleteGamesContainer").show();
+    });
+
+    $("#deleteGamesBackBtn").on("click", () => {
+        $(".deleteGamesContainer").hide();
+        $(".adminContainer").show();
+    });
+
+    $("#eventBtn").on("click", () => {
+        $(".adminContainer").hide();
+        $(".addEventContainer").show();
+    });
+
+    $("#addEventBackBtn").on("click", () => {
+        $(".addEventContainer").hide();
+        $(".adminContainer").show();
+    });
+
+    $("#addGamesConfirmBtn").on("click", () => {
+        var gameTitle = $("#gameTitle").val();
+        var gamePublisher = $("#gamePublisher").val();
+        $.ajax({
+            type: "POST",
+            cache: false,
+            url: "@Url.Action("AddGame", "Home")",
+            data: { "gameTitle": gameTitle, "gamePublisher": gamePublisher },
+            success: function (data) {
+                alert("Success!");
+            }
+        });
+    });
+
+    $("#addEventConfirmBtn").on("click", () => {
+        var eventName = $("#eventName").val();
+        var eventDate = $("#eventDate").val();
+        $.ajax({
+            type: "POST",
+            cache: false,
+            url: "@Url.Action("AddEvent", "Home")",
+            data: { "eventName": eventName, "eventDate": eventDate },
+            success: function (data) {
+                alert("Success!");
+            }
+        });
+    });
+
+    function UpdateGame(id) {
+        var GamesTitle = $(".title." + id).val();
+        var GamesPublisher = $(".publisher." + id).val();
+        $.ajax({
+            type: "POST",
+            cache: false,
+            url: "@Url.Action("UpdateGame", "Home")",
+            data: { "GameID": id, "NewTitle": GamesTitle, "NewPublisher": GamesPublisher },
+            success: function (data) {
+                alert("Success!");
+            }
+        });
+    }
+
+    function DeleteGame(id) {
+        $.ajax({
+            type: "POST",
+            cache: false,
+            url: "@Url.Action("DeleteGame", "Home")",
+            data: { "GameID": id },
+            success: function (data) {
+                alert("Success!");
+                $(".updateBtn." + id).prop("disabled", true);
+            }
+        });
+    }
+</script>
