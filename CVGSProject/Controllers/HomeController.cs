@@ -19,6 +19,7 @@ namespace CVGSProject.Controllers {
         public string connectionString = "data source=LAPTOP-UO2GBQ2N\\SQLEXPRESS;initial catalog=CVSG;trusted_connection=true";
         [HttpGet]
         public ActionResult Index(string search = null) {
+            // Landing Page
             Games games = new Games() { GamesList = new List<Game>() };
             using (DBManager db = new DBManager(connectionString)) {
                 DataSet DbSet = db.GetSelectQuery(new List<SqlParameter>() {
